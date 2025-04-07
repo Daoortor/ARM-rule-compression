@@ -10,7 +10,7 @@
 
 int main() {
     Dataset data = parse_dataset("../data/dataset.tsv");
-    std::vector<Rule> rules = parse_ruleset("../data/rules.txt");
+    Ruleset rules = parse_ruleset("../data/rules.txt");
 
     double beta = 0.5;
     int m = 10; // number of merges per round

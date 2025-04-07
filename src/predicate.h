@@ -17,12 +17,9 @@ struct Predicate {
     bool operator<(const Predicate& other) const;
 };
 
-struct PredicateHash {
-    size_t operator()(const Predicate& p) const;
-};
-
 using Rule = std::set<Predicate>;
 using DataRow = std::unordered_map<std::string, std::optional<bool>>;
 using Dataset = std::vector<DataRow>;
+using Ruleset = std::vector<Rule>;
 
 #endif //PREDICATE_H

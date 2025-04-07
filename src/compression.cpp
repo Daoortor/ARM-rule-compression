@@ -11,21 +11,21 @@ double entropy(double p) {
 
 // Evaluate if a rule matches a given data row
 bool evaluate_rule(const Rule& rule, const DataRow& row) {
-    for (const auto& pred : rule) {
+    return std::ranges::all_of(rule, [&](const Predicate& pred) {
         auto it = row.find(pred.name);
         if (it == row.end() || !it->second.has_value()) return false;
         if (pred.negated && it->second.value()) return false;
         if (!pred.negated && !it->second.value()) return false;
-    }
-    return true;
+        return true;
+    });
 }
 
-// Compute H(y | R) and P[R(x)] over dataset
-std::pair<double, double> conditional_entropy(const Rule& rule, const Dataset& data) {
+// Compute H(y | R) and P[R(x)] over the dataset
+std::pair<double, double> conditional_entropy(const Rule& rule, const Dataset& data, bool negate) {
     int match = 0, match_old = 0;
 
     for (const auto& row : data) {
-        if (evaluate_rule(rule, row)) {
+        if (negate != evaluate_rule(rule, row)) {
             ++match;
             if (row.at("donor_is_old").value()) ++match_old;
         }
@@ -36,41 +36,29 @@ std::pair<double, double> conditional_entropy(const Rule& rule, const Dataset& d
     return {entropy(p), static_cast<double>(match) / data.size()};
 }
 
-// IG(R)
 double information_gain(const Rule& rule, const Dataset& data, double base_entropy, double beta) {
     auto [h1, p] = conditional_entropy(rule, data);
-
-    // Compute conditional entropy on negation
-    int nmatch = 0, nmatch_old = 0;
-    for (const auto& row : data) {
-        if (!evaluate_rule(rule, row)) {
-            ++nmatch;
-            if (row.at("donor_is_old").value()) ++nmatch_old;
-        }
-    }
-
-    double q = nmatch == 0 ? 0 : static_cast<double>(nmatch_old) / nmatch;
-    double h2 = entropy(q);
-    double p_neg = static_cast<double>(nmatch) / data.size();
-
+    auto [h2, p_neg] = conditional_entropy(rule, data, true);
     return base_entropy - (beta + (1 - beta) * p) * h1 - (1 - beta) * p_neg * h2;
 }
 
 std::optional<Rule> intersect_rules(const Rule& r1, const Rule& r2) {
     Rule result;
     for (const auto& p : r1) {
-        auto it = r2.find(p);
-        if (it != r2.end()) result.insert(p);
+        if (r2.find(p) != r2.end()) result.insert(p);
     }
     return result;
 }
 
 std::optional<Rule> union_rules(const Rule& r1, const Rule& r2) {
     Rule result = r1;
-    for (const auto& p : r2) {
-        Predicate negated = {p.name, !p.negated};
-        if (result.count(negated)) return std::nullopt; // contradiction
-        result.insert(p);
+    for (const auto& pred : r2) {
+        Predicate pred_neg = {pred.name, !pred.negated};
+        if (result.count(pred_neg)) {
+            result.erase(pred_neg);
+        } else {
+            result.insert(pred);
+        }
     }
     return result;
 }
@@ -107,7 +95,7 @@ double joint_information_gain(const Rule& r1, const Rule& r2, const Dataset& dat
 }
 
 // Main compression routine
-void compress_rules(std::vector<Rule>& rules, const Dataset& data, int m, int n_rounds, double beta) {
+void compress_rules(Ruleset& rules, const Dataset& data, int m, int n_rounds, double beta) {
     double base_p = 0.0;
     for (const auto& row : data) {
         if (row.at("donor_is_old").value()) {
@@ -150,7 +138,7 @@ void compress_rules(std::vector<Rule>& rules, const Dataset& data, int m, int n_
         });
 
         std::set<int> used;
-        std::vector<Rule> new_rules;
+        Ruleset new_rules;
 
         for (int i = 0; i < merges.size() && new_rules.size() < m; ++i) {
             auto [ri, rj, delta, merged] = merges[i];

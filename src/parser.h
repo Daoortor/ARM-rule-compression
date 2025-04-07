@@ -9,6 +9,6 @@ Dataset parse_dataset(const std::string& filename);
 
 Rule parse_rule_line(const std::string& line);
 
-std::vector<Rule> parse_ruleset(const std::string& filename);
+Ruleset parse_ruleset(const std::string& filename);
 
 #endif //PARSER_H

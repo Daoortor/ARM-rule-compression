@@ -69,10 +69,10 @@ Rule parse_rule_line(const std::string& line) {
     return rule;
 }
 
-std::vector<Rule> parse_ruleset(const std::string& filename) {
+Ruleset parse_ruleset(const std::string& filename) {
     std::ifstream file(filename);
     std::string line;
-    std::vector<Rule> rules;
+    Ruleset rules;
     while (getline(file, line)) {
         if (line.empty()) continue;
         rules.push_back(parse_rule_line(line));

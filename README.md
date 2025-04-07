@@ -37,4 +37,9 @@ Consider two rules $R_1$, $R_2$. Let's calculate $IG(R_1)$, $IG(R_2)$, $IG(R_1 \
 We proceed in rounds. During each round:
 - calculate $\Delta_{i, j} = IG(R_i, R_j) - IG(R_{i, j})$ of each $R_i, R_j$ in the current ruleset;
 - choose $m$ pairs with the lowest $\Delta_{i, j}$ and merge them one-by-one. <br>
-  The algorithm is stopped once the ruleset is compressed enough. Low values of $m$ result in higher accuracy, but also higher computational costs.
+The algorithm is stopped once the ruleset is compressed enough. Low values of $m$ result in higher accuracy, but also higher computational costs.
+
+### Further heuristics
+Possible future heuristics:
+
+- Exploring 
