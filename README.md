@@ -42,4 +42,5 @@ The algorithm is stopped once the ruleset is compressed enough. Low values of $m
 ### Further heuristics
 Possible future heuristics:
 
-- Exploring 
+- Compressing rules $R_1, R_2$ s. t. $R_1(x) => R_2(x) \forall x$
+- More complex rule merging. For example, if $R_1$ is more significant than $R_2$, the merged rule might need to be closer to $R_1$ than to $R_2$
